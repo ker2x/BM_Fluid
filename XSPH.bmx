@@ -21,6 +21,11 @@ Import pub.Glew
 
 Import bah.opencl 'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
 
+' Initialize OpenCL Device
+Local platform:TCLPlatform = TCLPlatform.InitDevice(CL_DEVICE_TYPE_ALL)
+'Local program:TCLProgram = platform.LoadProgram(LoadString("fluid.cl"))
+'Local kernelGridCount:TCLKernel = program.LoadKernel("gridCount")
+
 
 Const GWIDTH:Int = 800  'Screen Width
 Const GHEIGHT:Int = 600 'Screen Height
@@ -154,7 +159,7 @@ Type TSPH
 	Const V_ALPHA:Float = 5.0 'Two constants used for the shear-and-bulk viscosity. Should not be altered at the moment, since this might induce cancer
 	Const V_BETA:Float  = 10.0
 	
-	Const TIMESTEP:Float 		= 0.4 'Timestepping constant. The simulation will run faster if the timestep is set higher, but the accuracy will decrease
+	Const TIMESTEP:Float = 0.4 'Timestepping constant. The simulation will run faster if the timestep is set higher, but the accuracy will decrease
 	Const     TIMESTEP_SQ:Float = TIMESTEP*TIMESTEP
 	Const INV_TIMESTEP:Float    = 1.0/TIMESTEP
 	
@@ -195,7 +200,7 @@ Type TSPH
 	
 	Const P_B:Float = GRAVITY_Y*CONTAINER_HEIGHT/7.0*3 'Scaling constant used for the pressure and speed-of-sound calculation
 	
-	Const SAMPLE_RATE:Float = 3.0 'Pixels per sample, used for the nice-render-routine
+	Const SAMPLE_RATE:Float = 5.0 'Pixels per sample, used for the nice-render-routine
 	Const MAX_WHITE:Float   = 0.8 'Brah, just color stuff
 	
 	Const PARTICLE_SPACING:Float = 30*TSPH.WORLD_SCALE 'Minimal distance that water particles should have
@@ -223,42 +228,44 @@ Type TSPH
 	End Method
 	
 	Method Update()
-		RedistributeGrid()
+		RedistributeGrid()  'Slowest Method
 		UpdateDensity()
 		CalcForces()
 		Integrate()
 	End Method
 	
+	' Slowest Method
 	Method RedistributeGrid() 'Fills the particles in a spatial grid whose cells contain linked lists of particles
 		For Local X:Int = 0 Until GridWidth
 			For Local Y:Int = 0 Until GridHeight
-				FluidGrid   [ X, Y ] = Null
-				BoundaryGrid[ X, Y ] = Null
+				FluidGrid[X, Y] = Null
+				BoundaryGrid[X, Y] = Null
 			Next
 		Next
 		
+		' Slow loop
 		For Local I:Int = 0 Until Particles.Length
-			Local P:TParticle = Particles[ I ]
+			Local P:TParticle = Particles[I]
 			
-			Local GridX:Int = Floor( P.PositionX*TSPH.INV_SMOOTHING_LENGTH )
-			Local GridY:Int = Floor( P.PositionY*TSPH.INV_SMOOTHING_LENGTH )
+			Local GridX:Int = Floor(P.PositionX * TSPH.INV_SMOOTHING_LENGTH)
+			Local GridY:Int = Floor(P.PositionY * TSPH.INV_SMOOTHING_LENGTH)
 			
-			Local Successor:TParticle = FluidGrid[ GridX, GridY ]
+			Local Successor:TParticle = FluidGrid[GridX, GridY]
 			
-			FluidGrid[ GridX, GridY ] = P
+			FluidGrid[GridX, GridY] = P
 			
 			P.Succ = Successor
 		Next
 		
 		For Local I:Int = 0 Until BoundaryParticles.Length
-			Local P:TParticle = BoundaryParticles[ I ]
+			Local P:TParticle = BoundaryParticles[I]
 			
-			Local GridX:Int = Floor( P.PositionX*TSPH.INV_SMOOTHING_LENGTH )
-			Local GridY:Int = Floor( P.PositionY*TSPH.INV_SMOOTHING_LENGTH )
+			Local GridX:Int = Floor(P.PositionX * TSPH.INV_SMOOTHING_LENGTH)
+			Local GridY:Int = Floor(P.PositionY * TSPH.INV_SMOOTHING_LENGTH)
 			
-			Local Successor:TParticle = BoundaryGrid[ GridX, GridY ]
+			Local Successor:TParticle = BoundaryGrid[GridX, GridY]
 			
-			BoundaryGrid[ GridX, GridY ] = P
+			BoundaryGrid[GridX, GridY] = P
 			
 			P.Succ = Successor
 		Next
@@ -529,6 +536,7 @@ Type TSPH
 						' Count the particule inside the grid cell
 						' 50% of time lost here						
 						Local Iterator:TParticle = FluidGrid[GridX, GridY]
+						'DebugStop
 						While Iterator
 							DSQ = (Iterator.PositionX - WorldX) * (Iterator.PositionX - WorldX) + (Iterator.PositionY - WorldY) * (Iterator.PositionY - WorldY)
 							
