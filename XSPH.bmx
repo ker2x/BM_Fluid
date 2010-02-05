@@ -17,7 +17,10 @@ Import BRL.PNGLoader
 Import BRL.StandardIO
 Import BRL.GLGraphics
 Import Pub.OpenGL
-Import Pub.Glew
+Import pub.Glew
+
+'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
+Import bah.opencl
 
 Const GWIDTH:Int  = 800
 Const GHEIGHT:Int = 600
@@ -37,7 +40,9 @@ While Not ( KeyHit( KEY_ESCAPE ) Or AppTerminate() ) 'I guess I don't have to ex
 	GLDrawText "Updatetime: " + String( UpdateCounter )[ .. 3 ] + "ms  Rendertime: " + String( RenderCounter )[ .. 4 ] + "ms  FPS: " + String( FPS )[ .. 4 ] + " Particles: " + TParticle.Count, 0, 0
 	
 	UpdateCounter = MilliSecs()
-	SPH.Update()
+	If Not SPH.Paused
+		SPH.Update()
+	End If
 	UpdateCounter = MilliSecs() - UpdateCounter
 	
 	RenderCounter = MilliSecs()
@@ -58,6 +63,10 @@ End
 
 Function UserInput( SPH:TSPH )
 	SPH.NiceRender = SPH.NiceRender ~ KeyHit( KEY_SPACE ) 'A fancy way of doing "If KeyHit( KEY_SPACE ) Then SPH.NiceRender = Not SPH.NiceRender"
+	
+	If KeyHit(KEY_P)
+		SPH.Paused = ~ SPH.Paused
+	End If
 	
 	Local MX:Int = MouseX(), MY:Int = MouseY()
 	
@@ -202,6 +211,8 @@ Type TSPH
 	
 	Field Particles:TParticle[]
 	Field BoundaryParticles:TParticle[]
+	
+	Field Paused:Int = False
 	
 	Method New()
 		GridWidth  = Ceil( CONTAINER_WIDTH *INV_SMOOTHING_LENGTH )
