@@ -1,1 +1,6 @@
 Simple Fluid Simulation written in BlitzMax
+
+- Left click to add water
+- right click to add a block
+- space bar to switch to (painfully slow) "nice" rendering
+- P to pause simulation
