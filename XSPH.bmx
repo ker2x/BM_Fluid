@@ -1,3 +1,12 @@
+' Simple fluid Simulation
+' Original code by Thomas "Tachyon" Riegsecker (http://basiliskgames.com/)
+'
+' Patched by Laurent "ker2x" Laborde (http://www.keru.org)
+'
+' Licenced under some kind of OpenSource License ... details comming soon
+
+
+
 SuperStrict
 
 Framework BRL.Basic
