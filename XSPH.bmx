@@ -19,10 +19,10 @@ Import BRL.GLGraphics
 Import Pub.OpenGL
 Import pub.Glew
 
-Import bah.opencl 'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
+'Import bah.opencl 'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
 
 ' Initialize OpenCL Device
-Local platform:TCLPlatform = TCLPlatform.InitDevice(CL_DEVICE_TYPE_ALL)
+'Local platform:TCLPlatform = TCLPlatform.InitDevice(CL_DEVICE_TYPE_ALL)
 'Local program:TCLProgram = platform.LoadProgram(LoadString("fluid.cl"))
 'Local kernelGridCount:TCLKernel = program.LoadKernel("gridCount")
 
@@ -206,7 +206,7 @@ Type TSPH
 	Const PARTICLE_SPACING:Float = 30*TSPH.WORLD_SCALE 'Minimal distance that water particles should have
 	Const BOUNDARY_SPACING:Float = 30*TSPH.WORLD_SCALE 'Same for boundary particles
 	
-	Field NiceRender:Int = False
+	Field NiceRender:Int = True
 	
 	Field GridWidth:Int
 	Field GridHeight:Int
