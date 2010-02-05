@@ -19,11 +19,11 @@ Import BRL.GLGraphics
 Import Pub.OpenGL
 Import pub.Glew
 
-'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
-Import bah.opencl
+Import bah.opencl 'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
 
-Const GWIDTH:Int  = 800
-Const GHEIGHT:Int = 600
+
+Const GWIDTH:Int = 800  'Screen Width
+Const GHEIGHT:Int = 600 'Screen Height
 
 InitGL()
 
@@ -40,7 +40,7 @@ While Not ( KeyHit( KEY_ESCAPE ) Or AppTerminate() ) 'I guess I don't have to ex
 	GLDrawText "Updatetime: " + String( UpdateCounter )[ .. 3 ] + "ms  Rendertime: " + String( RenderCounter )[ .. 4 ] + "ms  FPS: " + String( FPS )[ .. 4 ] + " Particles: " + TParticle.Count, 0, 0
 	
 	UpdateCounter = MilliSecs()
-	If Not SPH.Paused
+	If Not SPH.Paused   'Press P To Pause simulation
 		SPH.Update()
 	End If
 	UpdateCounter = MilliSecs() - UpdateCounter
@@ -64,7 +64,7 @@ End
 Function UserInput( SPH:TSPH )
 	SPH.NiceRender = SPH.NiceRender ~ KeyHit( KEY_SPACE ) 'A fancy way of doing "If KeyHit( KEY_SPACE ) Then SPH.NiceRender = Not SPH.NiceRender"
 	
-	If KeyHit(KEY_P)
+	If KeyHit(KEY_P) Then 'Pause the simulation
 		SPH.Paused = ~ SPH.Paused
 	End If
 	
@@ -154,7 +154,7 @@ Type TSPH
 	Const V_ALPHA:Float = 5.0 'Two constants used for the shear-and-bulk viscosity. Should not be altered at the moment, since this might induce cancer
 	Const V_BETA:Float  = 10.0
 	
-	Const     TIMESTEP:Float    = 0.4 'Timestepping constant. The simulation will run faster if the timestep is set higher, but the accuracy will decrease
+	Const TIMESTEP:Float 		= 0.4 'Timestepping constant. The simulation will run faster if the timestep is set higher, but the accuracy will decrease
 	Const     TIMESTEP_SQ:Float = TIMESTEP*TIMESTEP
 	Const INV_TIMESTEP:Float    = 1.0/TIMESTEP
 	
@@ -201,7 +201,7 @@ Type TSPH
 	Const PARTICLE_SPACING:Float = 30*TSPH.WORLD_SCALE 'Minimal distance that water particles should have
 	Const BOUNDARY_SPACING:Float = 30*TSPH.WORLD_SCALE 'Same for boundary particles
 	
-	Field NiceRender:Int
+	Field NiceRender:Int = False
 	
 	Field GridWidth:Int
 	Field GridHeight:Int
@@ -215,8 +215,8 @@ Type TSPH
 	Field Paused:Int = False
 	
 	Method New()
-		GridWidth  = Ceil( CONTAINER_WIDTH *INV_SMOOTHING_LENGTH )
-		GridHeight = Ceil( CONTAINER_HEIGHT*INV_SMOOTHING_LENGTH )
+		GridWidth = Ceil(CONTAINER_WIDTH * INV_SMOOTHING_LENGTH)    'Simulation Grid Width
+		GridHeight = Ceil(CONTAINER_HEIGHT * INV_SMOOTHING_LENGTH)  'Simulation Grid Height
 		
 		FluidGrid    = New TParticle[ GridWidth, GridHeight ]
 		BoundaryGrid = New TParticle[ GridWidth, GridHeight ]
@@ -501,32 +501,39 @@ Type TSPH
 			Local ScaleY:Float = SAMPLE_RATE*UNIT_SCALE*INV_WORLD_SCALE
 			
 			Local DirX:Int[] = [ -1, -1,  1, 1, -1, 1,  0, 0, 0 ]
-			Local DirY:Int[] = [ -1,  1, -1, 1,  0, 0, -1, 1, 0 ]
+			Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 			
-			Local DensityFactor:Float = 1.0/13000.0
+			Local WorldX:Float, WorldY:Float
+			Local IntX:Int, IntY:Int
+			Local GridX:Int, GridY:Int
+			Local DSQ:Float
+			
+			Local DensityFactor:Float = 1.0 / 13000.0
 			
 			For Local SampleY:Float = 0 Until SampleHeight 'Step through the screen and sample the density at certain points
 				For Local SampleX:Float = 0 Until SampleWidth
-					Local WorldX:Float = SampleX*ScaleX
-					Local WorldY:Float = SampleY*ScaleY
+				
+					WorldX = SampleX * ScaleX	'World position according to the Sampler Number
+					WorldY = SampleY * ScaleY
 					
-					Local IntX:Int = Int( WorldX*INV_SMOOTHING_LENGTH )
-					Local IntY:Int = Int( WorldY*INV_SMOOTHING_LENGTH )
+					IntX = Int(WorldX * INV_SMOOTHING_LENGTH)
+					IntY = Int(WorldY * INV_SMOOTHING_LENGTH)
 					
+					'60% of rendering time lost in this loop
 					For Local I:Int = 0 To 8
-						Local GridX:Int = IntX + DirX[ I ]
-						Local GridY:Int = IntY + DirY[ I ]
+						GridX = IntX + DirX[I]
+						GridY = IntY + DirY[I]
 						
 						If GridX < 0 Or GridY < 0 Or GridX >= GridWidth Or GridY >= GridHeight Then Continue
-						
-						Local Iterator:TParticle = FluidGrid[ GridX, GridY ]
-						
+
+						' Count the particule inside the grid cell
+						' 50% of time lost here						
+						Local Iterator:TParticle = FluidGrid[GridX, GridY]
 						While Iterator
-							Local DSQ:Float = ( Iterator.PositionX - WorldX )*( Iterator.PositionX - WorldX ) + ( Iterator.PositionY - WorldY )*( Iterator.PositionY - WorldY )
+							DSQ = (Iterator.PositionX - WorldX) * (Iterator.PositionX - WorldX) + (Iterator.PositionY - WorldY) * (Iterator.PositionY - WorldY)
 							
 							If DSQ < SMOOTHING_LENGTH_SQ Then
 								Local R:Float = SMOOTHING_LENGTH_SQ - DSQ
-								
 								Densities[SampleX, SampleY]:+R * R * R
 							EndIf
 							
@@ -536,12 +543,12 @@ Type TSPH
 					
 					Densities[ SampleX, SampleY ] :* DensityFactor
 					
-					Alphas[ SampleX, SampleY ] = 2.0 * Densities[ SampleX, SampleY ]
-					Ratios[ SampleX, SampleY ] = 1.0 - Densities[ SampleX, SampleY ]
+					Alphas[SampleX, SampleY] = 2.0 * Densities[SampleX, SampleY]
+					Ratios[SampleX, SampleY] = 1.0 - Densities[SampleX, SampleY]
 					
-					If Ratios[ SampleX, SampleY ] > MAX_WHITE Then
-						Alphas[ SampleX, SampleY ] :* MAX_WHITE/Ratios[ SampleX, SampleY ]
-						Ratios[ SampleX, SampleY ] =  MAX_WHITE
+					If Ratios[SampleX, SampleY] > MAX_WHITE Then
+						Alphas[SampleX, SampleY]:*MAX_WHITE / Ratios[SampleX, SampleY]
+						Ratios[SampleX, SampleY] = MAX_WHITE
 					EndIf
 				Next
 			Next
@@ -591,7 +598,7 @@ Type TSPH
 					ScreenY :+ SAMPLE_RATE
 				glEnd()
 			Next
-		Else
+		Else  'if not "NiceRender"
 			glBegin( GL_QUADS ) 'Just a few rectangles
 				For Local P:TParticle = EachIn Particles
 					Local Ratio:Float = Min( Max( ( P.Density + REST_DENSITY*0.0 )/( 2*REST_DENSITY ), 0.0 ), 1.0 )
