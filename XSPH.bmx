@@ -160,21 +160,21 @@ Type TSPH
 	Const V_BETA:Float  = 10.0
 	
 	Const TIMESTEP:Float = 0.4 'Timestepping constant. The simulation will run faster if the timestep is set higher, but the accuracy will decrease
-	Const     TIMESTEP_SQ:Float = TIMESTEP*TIMESTEP
+	Const TIMESTEP_SQ:Float = TIMESTEP * TIMESTEP
 	Const INV_TIMESTEP:Float    = 1.0/TIMESTEP
 	
-	Const     UNIT_SCALE:Float = 0.07 'The unit length used in the equations. You might choose this to be smaller, but don't forget to adjust the rest density
+	Const UNIT_SCALE:Float = 0.07 'The unit length used in the equations. You might choose this to be smaller, but don't forget to adjust the rest density
 	Const INV_UNIT_SCALE:Float = 1.0/UNIT_SCALE
 	
-	Const     WORLD_SCALE:Float = 0.5*0.35 'Scale constant used to map between pixel space and world space. You can set this smaller if you want to fit more water on the screen
+	Const WORLD_SCALE:Float = 0.5 * 0.35 'Scale constant used to map between pixel space and world space. You can set this smaller if you want to fit more water on the screen
 	Const INV_WORLD_SCALE:Float = 1.0/WORLD_SCALE
 	
 	Const CONTAINER_WIDTH:Float  = GWIDTH *UNIT_SCALE*INV_WORLD_SCALE 'Width and height of the container (=window) in world space
 	Const CONTAINER_HEIGHT:Float = GHEIGHT*UNIT_SCALE*INV_WORLD_SCALE
 	
-	Const     REPULSIVE_DISTANCE:Float = 30.0*UNIT_SCALE 'If a fluid particle approaches a boundary particle, this distance is used to determine, whether it will feel repulsive force
+	Const REPULSIVE_DISTANCE:Float = 30.0 * UNIT_SCALE 'If a fluid particle approaches a boundary particle, this distance is used to determine, whether it will feel repulsive force
 	Const INV_REPULSIVE_DISTANCE:Float = 1.0/REPULSIVE_DISTANCE
-	Const      REPULSIVE_DIST_SQ:Float = REPULSIVE_DISTANCE*REPULSIVE_DISTANCE
+	Const REPULSIVE_DIST_SQ:Float = REPULSIVE_DISTANCE * REPULSIVE_DISTANCE
 	
 	Const REPULSIVE_D:Float = 0.5 'Force scale for the repulsive force between fluid and boundary particles
 	
@@ -332,7 +332,7 @@ Type TSPH
 			
 			P.Pressure = P_B*P.Density*( ( P.Density*INV_REST_DENSITY )^7.0 - 1.0 )
 			
-			P.SoundSpeed = Sqr( Abs( HEAT_RATIO*P.Pressure*P.InvDensity ) )
+			P.SoundSpeed = Sqr(Abs(HEAT_RATIO * P.Pressure * P.InvDensity))
 		Next
 	End Method
 	
@@ -669,7 +669,9 @@ Type TSPH
 		GCCollect()
 	End Method
 	
-	Method AddParticle( X:Float, Y:Float )
+	Method AddParticle(X:Float, Y:Float)
+		If X < 0 Then X = 0.0;
+		If Y < 0 Then Y = 0.0;
 		Particles :+ [ TParticle.Create( X*UNIT_SCALE*INV_WORLD_SCALE, Y*UNIT_SCALE*INV_WORLD_SCALE ) ]
 	End Method
 	
