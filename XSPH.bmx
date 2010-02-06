@@ -21,6 +21,8 @@ Import pub.Glew
 
 'Import bah.opencl 'OpenCL stuff, Using the SVN version at : http://code.google.com/p/maxmods/
 
+Incbin "Metaball.png"
+
 ' Initialize OpenCL Device
 'Local platform:TCLPlatform = TCLPlatform.InitDevice(CL_DEVICE_TYPE_ALL)
 'Local program:TCLProgram = platform.LoadProgram(LoadString("fluid.cl"))
@@ -228,7 +230,7 @@ Type TSPH
 		FluidGrid    = New TParticle[ GridWidth, GridHeight ]
 		BoundaryGrid = New TParticle[GridWidth, GridHeight]
 		
-		ParticleTex = GLTexFromPixmap(LoadPixmapPNG("Metaball.png"))
+		ParticleTex = GLTexFromPixmap(LoadPixmapPNG("incbin::Metaball.png"))
 	End Method
 	
 	Method Update()
