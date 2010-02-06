@@ -348,32 +348,20 @@ Type TSPH
 		Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
 		Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 		
-		'For Local I:Int = 0 Until Particles.Length 'Reset the second order deritatives of the position and the first deritative of the density
-		'	'Local P:TParticle = Particles[I]
-		'	
-		'	'P.ForceX = GRAVITY_X * P.Density
-		'	'P.ForceY = GRAVITY_Y * P.Density
-		'	'P.DeltaVelocityX = 0.0
-		'	'P.DeltaVelocityY = 0.0
-		'	'P.DeltaDensity = 0.0
-		'	
-		'	Particles[I].ForceX = GRAVITY_X * Particles[I].Density
-		'	Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
-		'	Particles[I].DeltaVelocityX = 0.0
-		'	Particles[I].DeltaVelocityY = 0.0
-		'	Particles[I].DeltaDensity = 0.0
-		'	
-		'Next
+		For Local I:Int = 0 Until Particles.Length 'Reset the second order deritatives of the position and the first deritative of the density
+			Local P:TParticle = Particles[I]
+			
+			P.ForceX = GRAVITY_X * P.Density
+			P.ForceY = GRAVITY_Y * P.Density
+			P.DeltaVelocityX = 0.0
+			P.DeltaVelocityY = 0.0
+			P.DeltaDensity = 0.0
+		
+		Next
 		
 		For Local I:Int = 0 Until Particles.Length 'See the UpdateDensity method for more information about the grid iteration
-		
-			Particles[I].ForceX = GRAVITY_X * Particles[I].Density
-			Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
-			Particles[I].DeltaVelocityX = 0.0
-			Particles[I].DeltaVelocityY = 0.0
-			Particles[I].DeltaDensity = 0.0
-			
-			Local P1:TParticle = Particles[ I ]
+					
+			Local P1:TParticle = Particles[I]
 			
 			Local IntX:Int = Int( P1.PositionX*INV_SMOOTHING_LENGTH )
 			Local IntY:Int = Int( P1.PositionY*INV_SMOOTHING_LENGTH )
