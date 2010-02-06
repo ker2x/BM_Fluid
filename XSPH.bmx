@@ -237,7 +237,7 @@ Type TSPH
 	Method Update()
 		RedistributeGrid()  'Slowest Method
 		UpdateDensity()
-		CalcForces()
+		CalcForces()  '2nd slowest
 		Integrate()
 	End Method
 	
@@ -284,8 +284,8 @@ Type TSPH
 		'I won't go into the details of the calculations themselves. I posted the articles where I got the formulas from.
 		'I guess the articles explain them much better than I ever could :)
 		
-		Local DirX:Int[] = [ -1, -1,  1, 1, -1, 1,  0, 0, 0 ]
-		Local DirY:Int[] = [ -1,  1, -1, 1,  0, 0, -1, 1, 0 ]
+		Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
+		Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 		
 		For Local I:Int = 0 Until Particles.Length
 			Local P1:TParticle = Particles[ I ]
@@ -343,21 +343,36 @@ Type TSPH
 		Next
 	End Method
 	
+	' 2nd slowest method in simulation
 	Method CalcForces()
-		Local DirX:Int[] = [ -1, -1,  1, 1, -1, 1,  0, 0, 0 ]
-		Local DirY:Int[] = [ -1,  1, -1, 1,  0, 0, -1, 1, 0 ]
+		Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
+		Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 		
-		For Local I:Int = 0 Until Particles.Length 'Reset the second order deritatives of the position and the first deritative of the density
-			Local P:TParticle = Particles[ I ]
-			
-			P.ForceX = GRAVITY_X*P.Density
-			P.ForceY = GRAVITY_Y*P.Density
-			P.DeltaVelocityX = 0.0
-			P.DeltaVelocityY = 0.0
-			P.DeltaDensity   = 0.0
-		Next
+		'For Local I:Int = 0 Until Particles.Length 'Reset the second order deritatives of the position and the first deritative of the density
+		'	'Local P:TParticle = Particles[I]
+		'	
+		'	'P.ForceX = GRAVITY_X * P.Density
+		'	'P.ForceY = GRAVITY_Y * P.Density
+		'	'P.DeltaVelocityX = 0.0
+		'	'P.DeltaVelocityY = 0.0
+		'	'P.DeltaDensity = 0.0
+		'	
+		'	Particles[I].ForceX = GRAVITY_X * Particles[I].Density
+		'	Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
+		'	Particles[I].DeltaVelocityX = 0.0
+		'	Particles[I].DeltaVelocityY = 0.0
+		'	Particles[I].DeltaDensity = 0.0
+		'	
+		'Next
 		
 		For Local I:Int = 0 Until Particles.Length 'See the UpdateDensity method for more information about the grid iteration
+		
+			Particles[I].ForceX = GRAVITY_X * Particles[I].Density
+			Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
+			Particles[I].DeltaVelocityX = 0.0
+			Particles[I].DeltaVelocityY = 0.0
+			Particles[I].DeltaDensity = 0.0
+			
 			Local P1:TParticle = Particles[ I ]
 			
 			Local IntX:Int = Int( P1.PositionX*INV_SMOOTHING_LENGTH )
@@ -455,10 +470,10 @@ Type TSPH
 			Local Dist3:Float = Max(                    P1.PositionX, 0.0 )
 			Local Dist4:Float = Max(                    P1.PositionY, 0.0 )
 			
-			If Dist1 < REPULSIVE_DISTANCE Then P1.ForceX :- 1.0*( 1.0 - Sqr( Dist1*INV_REPULSIVE_DISTANCE ) )*P1.Density
-			If Dist2 < REPULSIVE_DISTANCE Then P1.ForceY :- 1.0*( 1.0 - Sqr( Dist2*INV_REPULSIVE_DISTANCE ) )*P1.Density
-			If Dist3 < REPULSIVE_DISTANCE Then P1.ForceX :+ 1.0*( 1.0 - Sqr( Dist3*INV_REPULSIVE_DISTANCE ) )*P1.Density
-			If Dist4 < REPULSIVE_DISTANCE Then P1.ForceY :+ 1.0*( 1.0 - Sqr( Dist4*INV_REPULSIVE_DISTANCE ) )*P1.Density
+			If Dist1 < REPULSIVE_DISTANCE Then P1.ForceX:-1.0 * (1.0 - Sqr(Dist1 * INV_REPULSIVE_DISTANCE)) * P1.Density
+			If Dist2 < REPULSIVE_DISTANCE Then P1.ForceY:-1.0 * (1.0 - Sqr(Dist2 * INV_REPULSIVE_DISTANCE)) * P1.Density
+			If Dist3 < REPULSIVE_DISTANCE Then P1.ForceX:+1.0 * (1.0 - Sqr(Dist3 * INV_REPULSIVE_DISTANCE)) * P1.Density
+			If Dist4 < REPULSIVE_DISTANCE Then P1.ForceY:+1.0 * (1.0 - Sqr(Dist4 * INV_REPULSIVE_DISTANCE)) * P1.Density
 		Next
 	End Method
 	
@@ -514,7 +529,7 @@ Type TSPH
 			Local ScaleX:Float = SAMPLE_RATE*UNIT_SCALE*INV_WORLD_SCALE
 			Local ScaleY:Float = SAMPLE_RATE*UNIT_SCALE*INV_WORLD_SCALE
 			
-			Local DirX:Int[] = [ -1, -1,  1, 1, -1, 1,  0, 0, 0 ]
+			Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
 			Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 			
 			Local WorldX:Float, WorldY:Float
