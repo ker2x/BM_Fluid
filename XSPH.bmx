@@ -204,9 +204,11 @@ Type TSPH
 	Const MAX_WHITE:Float   = 0.8 'Brah, just color stuff
 	
 	Const PARTICLE_SPACING:Float = 30*TSPH.WORLD_SCALE 'Minimal distance that water particles should have
-	Const BOUNDARY_SPACING:Float = 30*TSPH.WORLD_SCALE 'Same for boundary particles
+	Const BOUNDARY_SPACING:Float = 30 * TSPH.WORLD_SCALE 'Same for boundary particles
 	
-	Field NiceRender:Int = True
+	Field ParticleTex:Int    'Metaball texture
+	
+	Field NiceRender:Int = False
 	
 	Field GridWidth:Int
 	Field GridHeight:Int
@@ -224,7 +226,9 @@ Type TSPH
 		GridHeight = Ceil(CONTAINER_HEIGHT * INV_SMOOTHING_LENGTH)  'Simulation Grid Height
 		
 		FluidGrid    = New TParticle[ GridWidth, GridHeight ]
-		BoundaryGrid = New TParticle[ GridWidth, GridHeight ]
+		BoundaryGrid = New TParticle[GridWidth, GridHeight]
+		
+		ParticleTex = GLTexFromPixmap(LoadPixmapPNG("Metaball.png"))
 	End Method
 	
 	Method Update()
@@ -561,6 +565,9 @@ Type TSPH
 				Next
 			Next
 			
+			glEnable(GL_BLEND)
+			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
+			
 			Local ScreenX:Float, ScreenY:Float 'Draw the previously calculated density samples
 			For Local SampleY:Float = 0 Until SampleHeight - 1
 				Local DoSpacing:Int
@@ -607,18 +614,44 @@ Type TSPH
 				glEnd()
 			Next
 		Else  'if not "NiceRender"
-			glBegin( GL_QUADS ) 'Just a few rectangles
+			glEnable(GL_TEXTURE_2D)
+			glBindTexture( GL_TEXTURE_2D, ParticleTex )
+			
+			glEnable( GL_BLEND )
+			glBlendFunc(GL_ONE, GL_ONE) 'Additive blending
+			
+			glBegin(GL_QUADS) 'Just a few rectangles
+				Local S:Float = 8.0
+				
 				For Local P:TParticle = EachIn Particles
-					Local Ratio:Float = Min( Max( ( P.Density + REST_DENSITY*0.0 )/( 2*REST_DENSITY ), 0.0 ), 1.0 )
+					'Local Ratio:Float = Min( Max( ( P.Density + REST_DENSITY*0.0 )/( 2*REST_DENSITY ), 0.0 ), 1.0 )
+					'glColor3f(1.0 - Ratio, 1.0 - Ratio, 1.0)
 					
-					glColor3f( 1.0 - Ratio, 1.0 - Ratio, 1.0 )
+					Local col:Float = (0.7 + 0.2 * P.Pressure) * P.Density
+					glColor4f(col ^ 3, col ^ 1.5, col, 1.0)
 					
-					glVertex2f( P.ScreenX + 0.0, P.ScreenY + 0.0 )
-					glVertex2f( P.ScreenX + 2.0, P.ScreenY + 0.0 )
-					glVertex2f( P.ScreenX + 2.0, P.ScreenY + 2.0 )
-					glVertex2f( P.ScreenX + 0.0, P.ScreenY + 2.0 )
+					glTexCoord2f(0.0, 0.0) ; glVertex2f(P.ScreenX - S, P.ScreenY - S)
+					glTexCoord2f( 1.0, 0.0 ); glVertex2f( P.ScreenX + S, P.ScreenY - S )
+					glTexCoord2f( 1.0, 1.0 ); glVertex2f( P.ScreenX + S, P.ScreenY + S )
+					glTexCoord2f( 0.0, 1.0 ); glVertex2f( P.ScreenX - S, P.ScreenY + S )
 				Next
 			glEnd()
+			
+			glDisable(GL_TEXTURE_2D)
+			
+			glBlendFunc(GL_ZERO, GL_DST_COLOR) 'I don't really know how that one works - I just tried a few flag combinations and this one seemed to work
+			
+			glBegin( GL_QUADS )
+				For Local I:Int = 0 To 1
+					glVertex2f( 0.0, 0.0 )
+					glVertex2f( GWIDTH, 0.0 )
+					glVertex2f( GWIDTH, GHEIGHT )
+					glVertex2f( 0.0, GHEIGHT )
+				Next
+			glEnd()
+			
+			glDisable( GL_BLEND )
+			
 		EndIf
 		
 		glColor4f( 1.0, 0.5, 0.5, 1.0 )
