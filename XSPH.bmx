@@ -1,5 +1,6 @@
 ' Simple fluid Simulation
-' Original code by Thomas "Tachyon" Riegsecker (http://basiliskgames.com/)
+' Original code by "Noobody" 
+' http://www.blitzbasic.com/Community/posts.php?topic=87491
 '
 ' Patched by Laurent "ker2x" Laborde (http://www.keru.org)
 '
