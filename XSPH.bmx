@@ -299,7 +299,7 @@ Type TSPH
 				
 				If GridX < 0 Or GridY < 0 Or GridX >= GridWidth Or GridY >= GridHeight Then Continue
 				
-				Local P2:TParticle = FluidGrid[ GridX, GridY ]
+				Local P2:TParticle = FluidGrid[GridX, GridY]
 				
 				While P2 <> Null 'Iterate through the linked list
 					If P1.ID > P2.ID Then 'Do each pair just once
