@@ -125,29 +125,24 @@ Type TSPH
 		Next
 		
 		' Slow loop
+		' what is it supposed to do, anyway ?
 		For Local I:Int = 0 Until Particles.Length
 			Local P:TParticle = Particles[I]
-			
 			Local GridX:Int = Floor(P.PositionX * TSPH.INV_SMOOTHING_LENGTH)
 			Local GridY:Int = Floor(P.PositionY * TSPH.INV_SMOOTHING_LENGTH)
-			
 			Local Successor:TParticle = FluidGrid[GridX, GridY]
 			
 			FluidGrid[GridX, GridY] = P
-			
 			P.Succ = Successor
 		Next
 		
 		For Local I:Int = 0 Until BoundaryParticles.Length
 			Local P:TParticle = BoundaryParticles[I]
-			
 			Local GridX:Int = Floor(P.PositionX * TSPH.INV_SMOOTHING_LENGTH)
 			Local GridY:Int = Floor(P.PositionY * TSPH.INV_SMOOTHING_LENGTH)
-			
 			Local Successor:TParticle = BoundaryGrid[GridX, GridY]
 			
 			BoundaryGrid[GridX, GridY] = P
-			
 			P.Succ = Successor
 		Next
 		
@@ -224,11 +219,12 @@ Type TSPH
 		
 		'Reset the second order deritatives of the position and the first deritative of the density
 		For Local I:Int = 0 Until Particles.Length
-			Particles[I].ForceX = GRAVITY_X * Particles[I].Density
-			Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
-			Particles[I].DeltaVelocityX = 0.0
-			Particles[I].DeltaVelocityY = 0.0
-			Particles[I].DeltaDensity = 0.0
+			Local P:TParticle = Particles[I]
+			P.ForceX = GRAVITY_X * P.Density
+			P.ForceY = GRAVITY_Y * P.Density
+			P.DeltaVelocityX = 0.0
+			P.DeltaVelocityY = 0.0
+			P.DeltaDensity = 0.0
 		Next
 		
 		'See the UpdateDensity method for more information about the grid iteration
@@ -491,4 +487,5 @@ Type TSPH
 	Method AddBoundaryParticle( X:Float, Y:Float )
 		BoundaryParticles :+ [ TParticle.Create( X*UNIT_SCALE*INV_WORLD_SCALE, Y*UNIT_SCALE*INV_WORLD_SCALE ) ]
 	End Method
+	
 End Type
