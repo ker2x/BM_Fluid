@@ -61,12 +61,11 @@ Function InitGL()
 	GLGraphics GWIDTH, GHEIGHT 'Basic OGL initialization
 	
 	glewInit()
-	
+
 	glMatrixMode( GL_PROJECTION )
 	glLoadIdentity()
-	
+
 	glOrtho( 0, GWIDTH, GHEIGHT, 0, -1, 1 )
-	
 	glMatrixMode( GL_MODELVIEW )
 	glLoadIdentity()
 	
@@ -76,7 +75,6 @@ End Function
 
 
 Local SPH:TSPH = InitScene()
-
 Local UpdateCounter:Int, RenderCounter:Int, CountingFPS:Int, FPS:Int, FPSTimer:Int = MilliSecs()
 
 'MAIN LOOP
@@ -113,7 +111,7 @@ End
 'END OF MAIN LOOP
 
 Function UserInput( SPH:TSPH )
-	SPH.NiceRender = SPH.NiceRender ~ KeyHit( KEY_SPACE ) 'A fancy way of doing "If KeyHit( KEY_SPACE ) Then SPH.NiceRender = Not SPH.NiceRender"
+	SPH.NiceRender = SPH.NiceRender ~ KeyHit(KEY_SPACE) 'A fancy way of doing "If KeyHit( KEY_SPACE ) Then SPH.NiceRender = Not SPH.NiceRender"
 	
 	If KeyHit(KEY_P) Then 'Pause the simulation
 		SPH.Paused = ~ SPH.Paused

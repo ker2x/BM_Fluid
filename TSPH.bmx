@@ -87,8 +87,6 @@ Type TSPH
 	
 	Field ParticleTex:Int    'Metaball texture
 	
-	Field NiceRender:Int = False
-	
 	Field GridWidth:Int
 	Field GridHeight:Int
 	
@@ -382,171 +380,56 @@ Type TSPH
 	End Method
 	
 	Method Render()
-		If NiceRender Then
-			Local SampleWidth:Int  = Ceil( GWIDTH /SAMPLE_RATE )
-			Local SampleHeight:Int = Ceil( GHEIGHT/SAMPLE_RATE )
-			
-			Local Densities:Float[ SampleWidth, SampleHeight ]
-			Local Ratios:Float   [ SampleWidth, SampleHeight ]
-			Local Alphas:Float   [ SampleWidth, SampleHeight ]
-			
-			Local ScaleX:Float = SAMPLE_RATE*UNIT_SCALE*INV_WORLD_SCALE
-			Local ScaleY:Float = SAMPLE_RATE*UNIT_SCALE*INV_WORLD_SCALE
-			
-			Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
-			Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
-			
-			Local WorldX:Float, WorldY:Float
-			Local IntX:Int, IntY:Int
-			Local GridX:Int, GridY:Int
-			Local DSQ:Float
-			
-			Local DensityFactor:Float = 1.0 / 13000.0
-			
-			For Local SampleY:Float = 0 Until SampleHeight 'Step through the screen and sample the density at certain points
-				For Local SampleX:Float = 0 Until SampleWidth
-				
-					WorldX = SampleX * ScaleX	'World position according to the Sampler Number
-					WorldY = SampleY * ScaleY
-					
-					IntX = Int(WorldX * INV_SMOOTHING_LENGTH)
-					IntY = Int(WorldY * INV_SMOOTHING_LENGTH)
-					
-					'60% of rendering time lost in this loop
-					For Local I:Int = 0 To 8
-						GridX = IntX + DirX[I]
-						GridY = IntY + DirY[I]
-						
-						If GridX < 0 Or GridY < 0 Or GridX >= GridWidth Or GridY >= GridHeight Then Continue
-
-						' Count the particule inside the grid cell
-						' 50% of time lost here						
-						Local Iterator:TParticle = FluidGrid[GridX, GridY]
-						'DebugStop
-						While Iterator
-							DSQ = (Iterator.PositionX - WorldX) * (Iterator.PositionX - WorldX) + (Iterator.PositionY - WorldY) * (Iterator.PositionY - WorldY)
-							
-							If DSQ < SMOOTHING_LENGTH_SQ Then
-								Local R:Float = SMOOTHING_LENGTH_SQ - DSQ
-								Densities[SampleX, SampleY]:+R * R * R
-							EndIf
-							
-							Iterator = Iterator.Succ
-						Wend
-					Next
-					
-					Densities[ SampleX, SampleY ] :* DensityFactor
-					
-					Alphas[SampleX, SampleY] = 2.0 * Densities[SampleX, SampleY]
-					Ratios[SampleX, SampleY] = 1.0 - Densities[SampleX, SampleY]
-					
-					If Ratios[SampleX, SampleY] > MAX_WHITE Then
-						Alphas[SampleX, SampleY]:*MAX_WHITE / Ratios[SampleX, SampleY]
-						Ratios[SampleX, SampleY] = MAX_WHITE
-					EndIf
-				Next
-			Next
-			
-			glEnable(GL_BLEND)
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA )
-			
-			Local ScreenX:Float, ScreenY:Float 'Draw the previously calculated density samples
-			For Local SampleY:Float = 0 Until SampleHeight - 1
-				Local DoSpacing:Int
-				
-				glBegin( GL_TRIANGLE_STRIP )
-					For Local SampleX:Float = 0 Until SampleWidth
-						Local Density1:Float = Densities[ SampleX, SampleY ]
-						Local Density2:Float = Densities[ SampleX, SampleY + 1 ]
-						
-						If Density1 + Density2 = 0.0 Then
-							If Not DoSpacing Then
-								glColor4f( 0.0, 0.0, 0.0, 0.0 )
-								
-								glVertex2f( ScreenX, ScreenY )
-								glVertex2f( ScreenX, ScreenY + SAMPLE_RATE )
-								
-								DoSpacing = True
-							EndIf
-						Else
-							If DoSpacing Then
-								DoSpacing = False
-								
-								glVertex2f( ScreenX, ScreenY )
-								glVertex2f( ScreenX, ScreenY + SAMPLE_RATE )
-							EndIf
-							
-							Local Ratio:Float = Ratios[ SampleX, SampleY ]
-							
-							glColor4f( Ratio, Ratio, 1.0, Alphas[ SampleX, SampleY ] )
-							glVertex2f( ScreenX, ScreenY )
-							
-							
-							Ratio = Ratios[ SampleX, SampleY + 1 ]
-							
-							glColor4f( Ratio, Ratio, 1.0, Alphas[ SampleX, SampleY + 1 ] )
-							glVertex2f( ScreenX, ScreenY + SAMPLE_RATE )
-						EndIf
-						
-						ScreenX :+ SAMPLE_RATE
-					Next
-					
-					ScreenX  = 0.0
-					ScreenY :+ SAMPLE_RATE
-				glEnd()
-			Next
-		Else  'if not "NiceRender"
-			glEnable(GL_TEXTURE_2D)
-			glBindTexture( GL_TEXTURE_2D, ParticleTex )
-			
-			glEnable( GL_BLEND )
-			glBlendFunc(GL_ONE, GL_ONE) 'Additive blending
-			
-			glBegin(GL_QUADS) 'Just a few rectangles
-				Local S:Float = 8.0
-				
-				For Local P:TParticle = EachIn Particles
-					'Local Ratio:Float = Min( Max( ( P.Density + REST_DENSITY*0.0 )/( 2*REST_DENSITY ), 0.0 ), 1.0 )
-					'glColor3f(1.0 - Ratio, 1.0 - Ratio, 1.0)
-					
-					Local col:Float = (0.7 + 0.2 * P.Pressure) * P.Density
-					glColor4f(col ^ 3, col ^ 1.5, col, 1.0)
-					
-					glTexCoord2f(0.0, 0.0) ; glVertex2f(P.ScreenX - S, P.ScreenY - S)
-					glTexCoord2f( 1.0, 0.0 ); glVertex2f( P.ScreenX + S, P.ScreenY - S )
-					glTexCoord2f( 1.0, 1.0 ); glVertex2f( P.ScreenX + S, P.ScreenY + S )
-					glTexCoord2f( 0.0, 1.0 ); glVertex2f( P.ScreenX - S, P.ScreenY + S )
-				Next
-			glEnd()
-			
-			glDisable(GL_TEXTURE_2D)
-			
-			glBlendFunc(GL_ZERO, GL_DST_COLOR) 'I don't really know how that one works - I just tried a few flag combinations and this one seemed to work
-			
-			glBegin( GL_QUADS )
-				For Local I:Int = 0 To 1
-					glVertex2f( 0.0, 0.0 )
-					glVertex2f( GWIDTH, 0.0 )
-					glVertex2f( GWIDTH, GHEIGHT )
-					glVertex2f( 0.0, GHEIGHT )
-				Next
-			glEnd()
-			
-			glDisable( GL_BLEND )
-			
-		EndIf
+		glEnable(GL_TEXTURE_2D)
+		glBindTexture(GL_TEXTURE_2D, ParticleTex)
 		
-		glColor4f( 1.0, 0.5, 0.5, 1.0 )
+		glEnable(GL_BLEND)
+		glBlendFunc(GL_ONE, GL_ONE) 'Additive blending
 		
-		glBegin( GL_QUADS ) 'Brown boundaries
-			For Local P:TParticle = EachIn BoundaryParticles
-				glVertex2f( P.ScreenX - 3.0, P.ScreenY - 3.0 )
-				glVertex2f( P.ScreenX + 3.0, P.ScreenY - 3.0 )
-				glVertex2f( P.ScreenX + 3.0, P.ScreenY + 3.0 )
-				glVertex2f( P.ScreenX - 3.0, P.ScreenY + 3.0 )
+		glBegin(GL_QUADS) 'Just a few rectangles
+			Local S:Float = 8.0
+			
+			For Local P:TParticle = EachIn Particles
+				'Local Ratio:Float = Min(Max((P.Density + REST_DENSITY * 0.0) / (2 * REST_DENSITY), 0.0), 1.0)
+				'glColor3f(1.0 - Ratio, 1.0 - Ratio, 1.0)
+				
+				Local col:Float = (0.7 + 0.2 * P.Pressure) * P.Density
+				glColor4f(col ^ 3, col ^ 1.5, col, 1.0)
+				
+				glTexCoord2f(0.0, 0.0) ; glVertex2f(P.ScreenX - S, P.ScreenY - S)
+				glTexCoord2f(1.0, 0.0) ; glVertex2f(P.ScreenX + S, P.ScreenY - S)
+				glTexCoord2f( 1.0, 1.0 ); glVertex2f( P.ScreenX + S, P.ScreenY + S )
+				glTexCoord2f(0.0, 1.0) ; glVertex2f(P.ScreenX - S, P.ScreenY + S)
 			Next
 		glEnd()
-	End Method
+		
+		glDisable(GL_TEXTURE_2D)
+		
+		glBlendFunc(GL_ZERO, GL_DST_COLOR) 'I don't really know how that one works - I just tried a few flag combinations and this one seemed to work
+		
+		glBegin(GL_QUADS)
+			For Local I:Int = 0 To 1
+				glVertex2f(0.0, 0.0)
+				glVertex2f(GWIDTH, 0.0)
+				glVertex2f(GWIDTH, GHEIGHT)
+				glVertex2f(0.0, GHEIGHT)
+			Next
+		glEnd()
+		
+		glDisable(GL_BLEND)
+		
+	
+		'Draw boundaries (brownish wall)		
+		glColor4f(1.0, 0.5, 0.5, 1.0)
+		glBegin(GL_QUADS) 'Brown boundaries
+		For Local P:TParticle = EachIn BoundaryParticles
+			glVertex2f(P.ScreenX - 3.0, P.ScreenY - 3.0)
+			glVertex2f( P.ScreenX + 3.0, P.ScreenY - 3.0 )
+			glVertex2f(P.ScreenX + 3.0, P.ScreenY + 3.0)
+			glVertex2f(P.ScreenX - 3.0, P.ScreenY + 3.0)
+		Next
+	glEnd()
+End Method
 	
 	Method FreeRect( StartX:Float, StartY:Float, EndX:Float, EndY:Float ) 'Removes all fluid and boundary particles that are inside the specified rectangle
 		Local ArraySize:Int = Particles.Length
