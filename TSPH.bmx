@@ -424,8 +424,8 @@ Type TSPH
 			glVertex2f(P.ScreenX + 3.0, P.ScreenY + 3.0)
 			glVertex2f(P.ScreenX - 3.0, P.ScreenY + 3.0)
 		Next
-	glEnd()
-End Method
+		glEnd()
+	End Method
 	
 	Method FreeRect( StartX:Float, StartY:Float, EndX:Float, EndY:Float ) 'Removes all fluid and boundary particles that are inside the specified rectangle
 		Local ArraySize:Int = Particles.Length
@@ -462,7 +462,26 @@ End Method
 		
 		GCCollect()
 	End Method
-	
+
+	Method FreeRectKeepBoundary(StartX:Float, StartY:Float, EndX:Float, EndY:Float) 'Removes all fluid particles that are inside the specified rectangle
+		Local ArraySize:Int = Particles.Length
+		
+		For Local I:Int = 0 Until Particles.Length
+			If I >= ArraySize Then Exit
+			
+			Local P:TParticle = Particles[ I ]
+			
+			If P.ScreenX >= StartX And P.ScreenX <= EndX And P.ScreenY >= StartY And P.ScreenY <= EndY Then
+				Particles = Particles[ .. I ] + Particles[ I + 1 .. ]
+				
+				TParticle.Count :- 1
+				ArraySize :- 1
+				I :- 1
+			EndIf
+		Next		
+		GCCollect()
+	End Method
+		
 	Method AddParticle(X:Float, Y:Float)
 		If X < 0 Then X = 0.0;
 		If Y < 0 Then Y = 0.0;

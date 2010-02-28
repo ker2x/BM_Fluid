@@ -119,17 +119,17 @@ Function UserInput( SPH:TSPH )
 	Local MX:Int = MouseX(), MY:Int = MouseY()
 	
 	If MouseHit( 1 ) Then 'Add some water
-		SPH.FreeRect( MX - 41, MY - 41, MX + 41, MY + 41 )
+		SPH.FreeRect(MX - 41, MY - 41, MX + 41, MY + 41)
 		
-		For Local X:Float = Max( MX - 40, 0 ) To Min( MX + 40, GWIDTH ) Step 30*SPH.WORLD_SCALE
-			For Local Y:Float = Max( MY - 40, 0 ) To Min( MY + 40, GHEIGHT ) Step 30*SPH.WORLD_SCALE
+		For Local X:Float = Max(MX - 40, 0) To Min(MX + 40, GWIDTH) Step 30 * SPH.WORLD_SCALE
+			For Local Y:Float = Max(MY - 40, 0) To Min(MY + 40, GHEIGHT) Step 30 * SPH.WORLD_SCALE
 				SPH.AddParticle( X + Rnd( -0.5, 0.5 ), Y + Rnd( -0.5, 0.5 ) )
 			Next
 		Next
 	EndIf
 	
 	If MouseHit( 2 ) Then 'Place a wall
-		SPH.FreeRect( MX - 9, MY - 9, MX + 9, MY + 9 )
+		SPH.FreeRectKeepBoundary( MX - 11, MY - 11, MX + 11, MY + 11 )
 		
 		For Local X:Float = Max( MX - 10, 0 ) To Min( MX + 10, GWIDTH ) Step 30*SPH.WORLD_SCALE
 			For Local Y:Float = Max( MY - 10, 0 ) To Min( MY + 10, GHEIGHT ) Step 30*SPH.WORLD_SCALE
