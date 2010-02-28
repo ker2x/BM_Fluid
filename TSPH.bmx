@@ -102,7 +102,7 @@ Type TSPH
 		GridWidth = Ceil(CONTAINER_WIDTH * INV_SMOOTHING_LENGTH)    'Simulation Grid Width
 		GridHeight = Ceil(CONTAINER_HEIGHT * INV_SMOOTHING_LENGTH)  'Simulation Grid Height
 		
-		FluidGrid    = New TParticle[ GridWidth, GridHeight ]
+		FluidGrid = New TParticle[GridWidth, GridHeight]
 		BoundaryGrid = New TParticle[GridWidth, GridHeight]
 		
 		ParticleTex = GLTexFromPixmap(LoadPixmapPNG("incbin::Metaball.png"))
@@ -222,18 +222,17 @@ Type TSPH
 		Local DirX:Int[] = [- 1, -1, 1, 1, -1, 1, 0, 0, 0]
 		Local DirY:Int[] = [- 1, 1, -1, 1, 0, 0, -1, 1, 0]
 		
-		For Local I:Int = 0 Until Particles.Length 'Reset the second order deritatives of the position and the first deritative of the density
-			Local P:TParticle = Particles[I]
-			
-			P.ForceX = GRAVITY_X * P.Density
-			P.ForceY = GRAVITY_Y * P.Density
-			P.DeltaVelocityX = 0.0
-			P.DeltaVelocityY = 0.0
-			P.DeltaDensity = 0.0
-		
+		'Reset the second order deritatives of the position and the first deritative of the density
+		For Local I:Int = 0 Until Particles.Length
+			Particles[I].ForceX = GRAVITY_X * Particles[I].Density
+			Particles[I].ForceY = GRAVITY_Y * Particles[I].Density
+			Particles[I].DeltaVelocityX = 0.0
+			Particles[I].DeltaVelocityY = 0.0
+			Particles[I].DeltaDensity = 0.0
 		Next
 		
-		For Local J:Int = 0 Until Particles.Length 'See the UpdateDensity method for more information about the grid iteration
+		'See the UpdateDensity method for more information about the grid iteration
+		For Local J:Int = 0 Until Particles.Length
 					
 			Local P1:TParticle = Particles[J]
 			
@@ -304,7 +303,7 @@ Type TSPH
 					P2 = P2.Succ
 				Wend
 				
-				P2 = BoundaryGrid[ GridX, GridY ]
+				P2 = BoundaryGrid[GridX, GridY]
 				
 				While P2 <> Null 'Basic repulsive force calculation for boundary/fluid particle collision
 					Local DX:Float = ( P1.PositionX - P2.PositionX )
@@ -350,8 +349,8 @@ Type TSPH
 			P.PositionX :+ ( 1.0 - DAMPING )*( P.PositionX - P.OldX ) + P.DeltaVelocityX*TIMESTEP + TIMESTEP_SQ*P.ForceX
 			P.PositionY :+ ( 1.0 - DAMPING )*( P.PositionY - P.OldY ) + P.DeltaVelocityY*TIMESTEP + TIMESTEP_SQ*P.ForceY
 			
-			P.PositionX = Max( Min( P.PositionX, CONTAINER_WIDTH  ), 0.0 )
-			P.PositionY = Max( Min( P.PositionY, CONTAINER_HEIGHT ), 0.0 )
+			P.PositionX = Max(Min(P.PositionX, CONTAINER_WIDTH), 0.0)
+			P.PositionY = Max(Min(P.PositionY, CONTAINER_HEIGHT), 0.0)
 			
 			P.OldX = OldX
 			P.OldY = OldY
@@ -387,14 +386,11 @@ Type TSPH
 		glBlendFunc(GL_ONE, GL_ONE) 'Additive blending
 		
 		glBegin(GL_QUADS) 'Just a few rectangles
-			Local S:Float = 8.0
+			Local S:Float = 14.0
 			
 			For Local P:TParticle = EachIn Particles
-				'Local Ratio:Float = Min(Max((P.Density + REST_DENSITY * 0.0) / (2 * REST_DENSITY), 0.0), 1.0)
-				'glColor3f(1.0 - Ratio, 1.0 - Ratio, 1.0)
-				
-				Local col:Float = (0.7 + 0.2 * P.Pressure) * P.Density
-				glColor4f(col ^ 3, col ^ 1.5, col, 1.0)
+				Local col:Float = (0.4 + 0.2 * P.Pressure) * P.Density
+				glColor4f(col ^ 1.5, col ^ 1.5, col, 1.0)
 				
 				glTexCoord2f(0.0, 0.0) ; glVertex2f(P.ScreenX - S, P.ScreenY - S)
 				glTexCoord2f(1.0, 0.0) ; glVertex2f(P.ScreenX + S, P.ScreenY - S)

@@ -52,8 +52,8 @@ Type TParticle
 	
 	Field Density:Float      'doh !
 	Field DeltaDensity:Float 'wazup ?
-	Field InvDensity:Float   'This is... InvDensity \o/
-	Field InvDensitySq:Float 'and the squared inv density, heh
+	Field InvDensity:Float   'This is... 1/Density \o/
+	Field InvDensitySq:Float 'and (1/Density) * (1/Density) , heh
 	
 	Field Mass:Float         'Particle Mass (bleh ?)
 	
@@ -69,10 +69,10 @@ Type TParticle
 			P.PositionY = Y
 			P.OldX = X
 			P.OldY = Y
-			P.ScreenX = X*TSPH.INV_UNIT_SCALE*TSPH.WORLD_SCALE
-			P.ScreenY = Y*TSPH.INV_UNIT_SCALE*TSPH.WORLD_SCALE
-			P.Density = TSPH.REST_DENSITY 'Initialize the density and mass
-			P.Mass = TSPH.PARTICLE_AREA*TSPH.REST_DENSITY
+			P.ScreenX = X * TSPH.INV_UNIT_SCALE * TSPH.WORLD_SCALE 'TParticle shouldn't depend of TSPH :(
+			P.ScreenY = Y * TSPH.INV_UNIT_SCALE * TSPH.WORLD_SCALE 'TParticle shouldn't depend of TSPH :(
+			P.Density = TSPH.REST_DENSITY                          'TParticle shouldn't depend of TSPH :(
+			P.Mass = TSPH.PARTICLE_AREA * TSPH.REST_DENSITY        'TParticle shouldn't depend of TSPH :(
 			P.ID = Count
 		
 		Count :+ 1
