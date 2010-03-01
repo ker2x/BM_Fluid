@@ -45,7 +45,7 @@ Type TSPH
 	Const UNIT_SCALE:Float = 0.07 'The unit length used in the equations. You might choose this to be smaller, but don't forget to adjust the rest density
 	Const INV_UNIT_SCALE:Float = 1.0/UNIT_SCALE
 	
-	Const WORLD_SCALE:Float = 0.5 * 0.35 'Scale constant used to map between pixel space and world space. You can set this smaller if you want to fit more water on the screen
+	Const WORLD_SCALE:Float = 0.6 * 0.35 'Scale constant used to map between pixel space and world space. You can set this smaller if you want to fit more water on the screen
 	Const INV_WORLD_SCALE:Float = 1.0/WORLD_SCALE
 	
 	Const CONTAINER_WIDTH:Float  = GWIDTH *UNIT_SCALE*INV_WORLD_SCALE 'Width and height of the container (=window) in world space
@@ -309,10 +309,8 @@ Type TSPH
 					
 					If DSQ < REPULSIVE_DIST_SQ Then
 						Local InvDSQ:Float   = 1.0/DSQ
-						
-						Local RSQ:Float = REPULSIVE_DIST_SQ*InvDSQ
-						
-						Local RepulsiveFactor:Float = REPULSIVE_D*( RSQ*RSQ - RSQ )*InvDSQ
+						Local RSQ:Float = REPULSIVE_DIST_SQ * InvDSQ
+						Local RepulsiveFactor:Float = REPULSIVE_D * (RSQ * RSQ - RSQ) * InvDSQ
 						
 						P1.ForceX :+ DX*RepulsiveFactor
 						P1.ForceY :+ DY*RepulsiveFactor
@@ -382,7 +380,7 @@ Type TSPH
 		glBlendFunc(GL_ONE, GL_ONE) 'Additive blending
 		
 		glBegin(GL_QUADS) 'Just a few rectangles
-			Local S:Float = 14.0
+			Local S:Float = 16.0
 			
 			For Local P:TParticle = EachIn Particles
 				Local col:Float = (0.4 + 0.2 * P.Pressure) * P.Density
@@ -390,7 +388,7 @@ Type TSPH
 				
 				glTexCoord2f(0.0, 0.0) ; glVertex2f(P.ScreenX - S, P.ScreenY - S)
 				glTexCoord2f(1.0, 0.0) ; glVertex2f(P.ScreenX + S, P.ScreenY - S)
-				glTexCoord2f( 1.0, 1.0 ); glVertex2f( P.ScreenX + S, P.ScreenY + S )
+				glTexCoord2f(1.0, 1.0) ; glVertex2f(P.ScreenX + S, P.ScreenY + S)
 				glTexCoord2f(0.0, 1.0) ; glVertex2f(P.ScreenX - S, P.ScreenY + S)
 			Next
 		glEnd()
@@ -415,10 +413,10 @@ Type TSPH
 		glColor4f(1.0, 0.5, 0.5, 1.0)
 		glBegin(GL_QUADS) 'Brown boundaries
 		For Local P:TParticle = EachIn BoundaryParticles
-			glVertex2f(P.ScreenX - 3.0, P.ScreenY - 3.0)
-			glVertex2f( P.ScreenX + 3.0, P.ScreenY - 3.0 )
-			glVertex2f(P.ScreenX + 3.0, P.ScreenY + 3.0)
-			glVertex2f(P.ScreenX - 3.0, P.ScreenY + 3.0)
+			glVertex2f(P.ScreenX - 4.0, P.ScreenY - 4.0)
+			glVertex2f(P.ScreenX + 4.0, P.ScreenY - 4.0)
+			glVertex2f(P.ScreenX + 4.0, P.ScreenY + 4.0)
+			glVertex2f(P.ScreenX - 4.0, P.ScreenY + 4.0)
 		Next
 		glEnd()
 	End Method

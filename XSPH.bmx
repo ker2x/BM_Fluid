@@ -80,27 +80,27 @@ Local UpdateCounter:Int, RenderCounter:Int, CountingFPS:Int, FPS:Int, FPSTimer:I
 'MAIN LOOP
 While Not ( KeyHit( KEY_ESCAPE ) Or AppTerminate() )
  
+	'User input and misc stuff
 	glClear(GL_COLOR_BUFFER_BIT) 'clear screen
-	
 	UserInput(SPH)  'handle user input
-	
-	glColor4f( 1.0, 1.0, 1.0, 1.0 )
+	glColor4f(1.0, 1.0, 1.0, 1.0)
 	GLDrawText "Updatetime: " + String( UpdateCounter )[ .. 3 ] + "ms  Rendertime: " + String( RenderCounter )[ .. 4 ] + "ms  FPS: " + String( FPS )[ .. 4 ] + " Particles: " + TParticle.Count, 0, 0
 	
+	'Simulation 
 	UpdateCounter = MilliSecs()
 	If Not SPH.Paused   'Press P To Pause simulation
 		SPH.Update()
 	End If
 	UpdateCounter = MilliSecs() - UpdateCounter
 	
+	'Rendering
 	RenderCounter = MilliSecs()
 	SPH.Render()
-	
 	Flip 0
 	RenderCounter = MilliSecs() - Rendercounter
 	
+	'Time counter
 	CountingFPS :+ 1
-	
 	If MilliSecs() - FPSTimer > 500 Then
 		FPS = CountingFPS*2
 		CountingFPS = 0
@@ -112,13 +112,13 @@ End
 
 Function UserInput( SPH:TSPH )
 	
-	If KeyHit(KEY_P) Then 'Pause the simulation
+	If KeyHit(KEY_P) Then 'P : Pause the simulation
 		SPH.Paused = ~ SPH.Paused
 	End If
 	
 	Local MX:Int = MouseX(), MY:Int = MouseY()
 	
-	If MouseHit( 1 ) Then 'Add some water
+	If MouseHit(1) Then 'Left click : Add some water
 		SPH.FreeRect(MX - 41, MY - 41, MX + 41, MY + 41)
 		
 		For Local X:Float = Max(MX - 40, 0) To Min(MX + 40, GWIDTH) Step 30 * SPH.WORLD_SCALE
@@ -128,7 +128,7 @@ Function UserInput( SPH:TSPH )
 		Next
 	EndIf
 	
-	If MouseHit( 2 ) Then 'Place a wall
+	If MouseHit(2) Then 'Right click : Place a wall
 		SPH.FreeRectKeepBoundary( MX - 11, MY - 11, MX + 11, MY + 11 )
 		
 		For Local X:Float = Max( MX - 10, 0 ) To Min( MX + 10, GWIDTH ) Step 30*SPH.WORLD_SCALE
