@@ -170,8 +170,8 @@ Function InitScene:TSPH() 'Fills parts of the initial area with water and places
 	'	Next
 	'Next
 	
-	For Local Y:Float = 580 To 599 Step SPH.PARTICLE_SPACING
-		For Local X:Float = 1 To 799 Step SPH.PARTICLE_SPACING
+	For Local Y:Float = 570 To 598 Step SPH.PARTICLE_SPACING
+		For Local X:Float = 5 To 795 Step SPH.PARTICLE_SPACING
 			SPH.AddParticle( X + Rnd( -0.5, 0.5 ), Y + Rnd( -0.5, 0.5 ) )
 		Next
 	Next
