@@ -199,16 +199,12 @@ Type TSPH
 			
 			P.Density :+ P.DeltaDensity*D_KERNEL_FACTOR_GRADIENT
 			
-			If P.Density < 0.3 Or P.Density > 0.4 Then P.Density = REST_DENSITY*1.1 'CANCER. ELIMINATE.
+			If P.Density < 0.3 Or P.Density > 0.4 Then P.Density = REST_DENSITY * 1.1 'CANCER. ELIMINATE.
 			
-			P.InvDensity   = 1.0/P.Density
-			P.InvDensitySq = P.InvDensity*P.InvDensity
+			P.Mass = P.Density * PARTICLE_AREA
+			P.Pressure = P_B * P.Density * ((P.Density * INV_REST_DENSITY) ^ 7.0 - 1.0)
+			'P.SoundSpeed = Sqr(Abs(HEAT_RATIO * P.Pressure * (1 / P.Density)))
 			
-			P.Mass = P.Density*PARTICLE_AREA
-			
-			P.Pressure = P_B*P.Density*( ( P.Density*INV_REST_DENSITY )^7.0 - 1.0 )
-			
-			P.SoundSpeed = Sqr(Abs(HEAT_RATIO * P.Pressure * P.InvDensity))
 		Next
 	End Method
 	
@@ -258,16 +254,15 @@ Type TSPH
 							Local VDX:Float = P2.VelocityX - P1.VelocityX
 							Local VDY:Float = P2.VelocityY - P1.VelocityY
 							
-							Local PressureForce:Float = P1.Pressure*P1.InvDensitySq + P2.Pressure*P2.InvDensitySq 'Pressure force
+							Local PressureForce:Float = P1.Pressure * ((1 / P1.Density) * (1 / P1.Density)) + P2.Pressure * ((1 / P2.Density) * (1 / P2.Density)) 'Pressure force
 							
 							Local InvDensityAverage:Float = 2.0/( P1.Density + P2.Density )
 							
-							Local DotP:Float = -DX*VDX - DY*VDY
+							Local DotP:Float = -DX * VDX - DY * VDY
 							
 							If DotP < 0.0 Then 'Shear-bulk-viscosity
-								Local M:Float = SMOOTHING_LENGTH*DotP/( DSQ + 20.0 )
-								
-								PressureForce :+ ( -V_ALPHA*M*( P1.SoundSpeed + P2.SoundSpeed )*0.5 + V_BETA*M*M )*InvDensityAverage
+								Local M:Float = SMOOTHING_LENGTH * DotP / (DSQ + 20.0)
+								PressureForce:+(-V_ALPHA * M * (Sqr(Abs(HEAT_RATIO * P1.Pressure * (1 / P1.Density))) + Sqr(Abs(HEAT_RATIO * P2.Pressure * (1 / P2.Density)))) * 0.5 + V_BETA * M * M) * InvDensityAverage
 							EndIf
 							
 							PressureForce :* -P2.Mass*P_KERNEL_FACTOR*R*R/D
@@ -303,9 +298,8 @@ Type TSPH
 				
 				While P2 <> Null 'Basic repulsive force calculation for boundary/fluid particle collision
 					Local DX:Float = ( P1.PositionX - P2.PositionX )
-					Local DY:Float = ( P1.PositionY - P2.PositionY )
-					
-					Local DSQ:Float = DX*DX + DY*DY
+					Local DY:Float = ( P1.PositionY - P2.PositionY )					
+					Local DSQ:Float = DX * DX + DY * DY
 					
 					If DSQ < REPULSIVE_DIST_SQ Then
 						Local InvDSQ:Float   = 1.0/DSQ
@@ -340,8 +334,8 @@ Type TSPH
 			Local OldX:Float = P.PositionX
 			Local OldY:Float = P.PositionY
 			
-			P.PositionX :+ ( 1.0 - DAMPING )*( P.PositionX - P.OldX ) + P.DeltaVelocityX*TIMESTEP + TIMESTEP_SQ*P.ForceX
-			P.PositionY :+ ( 1.0 - DAMPING )*( P.PositionY - P.OldY ) + P.DeltaVelocityY*TIMESTEP + TIMESTEP_SQ*P.ForceY
+			P.PositionX:+(1.0 - DAMPING) * (P.PositionX - P.OldX) + P.DeltaVelocityX * TIMESTEP + TIMESTEP_SQ * P.ForceX
+			P.PositionY:+(1.0 - DAMPING) * (P.PositionY - P.OldY) + P.DeltaVelocityY * TIMESTEP + TIMESTEP_SQ * P.ForceY
 			
 			P.PositionX = Max(Min(P.PositionX, CONTAINER_WIDTH), 0.0)
 			P.PositionY = Max(Min(P.PositionY, CONTAINER_HEIGHT), 0.0)
@@ -349,8 +343,8 @@ Type TSPH
 			P.OldX = OldX
 			P.OldY = OldY
 			
-			P.VelocityX = ( P.PositionX - OldX )*INV_TIMESTEP
-			P.VelocityY = ( P.PositionY - OldY )*INV_TIMESTEP
+			P.VelocityX = (P.PositionX - OldX) * INV_TIMESTEP
+			P.VelocityY = (P.PositionY - OldY) * INV_TIMESTEP
 			
 			Local DSQ:Float = P.VelocityX*P.VelocityX + P.VelocityY*P.VelocityY
 			
@@ -479,7 +473,7 @@ Type TSPH
 	Method AddParticle(X:Float, Y:Float)
 		If X < 0 Then X = 0.0;
 		If Y < 0 Then Y = 0.0;
-		Particles :+ [ TParticle.Create( X*UNIT_SCALE*INV_WORLD_SCALE, Y*UNIT_SCALE*INV_WORLD_SCALE ) ]
+		Particles:+[TParticle.Create(X * UNIT_SCALE * INV_WORLD_SCALE, Y * UNIT_SCALE * INV_WORLD_SCALE) ]
 	End Method
 	
 	Method AddBoundaryParticle( X:Float, Y:Float )

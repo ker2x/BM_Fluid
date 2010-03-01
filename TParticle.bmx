@@ -52,13 +52,13 @@ Type TParticle
 	
 	Field Density:Float      'doh !
 	Field DeltaDensity:Float 'wazup ?
-	Field InvDensity:Float   'This is... 1/Density \o/
-	Field InvDensitySq:Float 'and (1/Density) * (1/Density) , heh
+	'Field InvDensity:Float   'This is... 1/Density \o/
+	'Field InvDensitySq:Float 'and (1/Density) * (1/Density) , heh
 	
 	Field Mass:Float         'Particle Mass (bleh ?)
 	
 	Field Pressure:Float     'Particle Pressure, probably
-	Field SoundSpeed:Float   'Lesser than LightSpeed
+	'Field SoundSpeed:Float   'Lesser than LightSpeed
 	
 	Field Succ:TParticle     'Next particle because we're in a linked list, isn't it ?
 	
