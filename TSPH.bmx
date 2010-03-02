@@ -72,7 +72,7 @@ Type TSPH
 	Const XSPH_EPSILON:Float = 0.5 'The epsilon factor used in the XSPH variant to provide more orderly high-speed flows (makes the simulation more stable too)
 	
 	Const GRAVITY_X:Float = 0.0*UNIT_SCALE 'Gravity
-	Const GRAVITY_Y:Float = 0.5*UNIT_SCALE
+	Const GRAVITY_Y:Float = 0.5 * UNIT_SCALE
 	
 	Const REST_DENSITY:Float	= 0.35 'The density the fluid would have if it was at rest, used to initialize particles and calculate the pressure
 	Const INV_REST_DENSITY:Float	= 1.0/REST_DENSITY
@@ -244,28 +244,31 @@ Type TSPH
 						Local DX:Float = ( P1.PositionX - P2.PositionX )
 						Local DY:Float = ( P1.PositionY - P2.PositionY )
 						
-						Local DSQ:Float = DX*DX + DY*DY
+						Local DSQ:Float = (DX * DX + DY * DY)
 						
 						If DSQ < SMOOTHING_LENGTH_SQ Then
 							Local D:Float = Sqr( DSQ )
 							
 							Local R:Float  = SMOOTHING_LENGTH - D
 							
-							Local VDX:Float = P2.VelocityX - P1.VelocityX
-							Local VDY:Float = P2.VelocityY - P1.VelocityY
+							Local VDX:Float = (P2.VelocityX - P1.VelocityX)
+							Local VDY:Float = (P2.VelocityY - P1.VelocityY)
 							
 							Local PressureForce:Float = P1.Pressure * ((1 / P1.Density) * (1 / P1.Density)) + P2.Pressure * ((1 / P2.Density) * (1 / P2.Density)) 'Pressure force
 							
-							Local InvDensityAverage:Float = 2.0/( P1.Density + P2.Density )
+							Local InvDensityAverage:Float = (2.0 / (P1.Density + P2.Density))
 							
-							Local DotP:Float = -DX * VDX - DY * VDY
+							Local DotP:Float = (-DX * VDX - DY * VDY)
 							
 							If DotP < 0.0 Then 'Shear-bulk-viscosity
-								Local M:Float = SMOOTHING_LENGTH * DotP / (DSQ + 20.0)
+								Local M:Float = (SMOOTHING_LENGTH * DotP / (DSQ + 20.0))
 								PressureForce:+(-V_ALPHA * M * (Sqr(Abs(HEAT_RATIO * P1.Pressure * (1 / P1.Density))) + Sqr(Abs(HEAT_RATIO * P2.Pressure * (1 / P2.Density)))) * 0.5 + V_BETA * M * M) * InvDensityAverage
+								'PressureForce:+(-V_ALPHA * (SMOOTHING_LENGTH * (-(P1.PositionX - P2.PositionX) * (P2.VelocityX - P1.VelocityX) - (P1.PositionY - P2.PositionY) * (P2.VelocityY - P1.VelocityY)) / (((P1.PositionX - P2.PositionX) * (P1.PositionX - P2.PositionX) + (P1.PositionX - P2.PositionX) * (P1.PositionX - P2.PositionX)) + 20.0)) * (Sqr(Abs(HEAT_RATIO * P1.Pressure * (1 / P1.Density))) + Sqr(Abs(HEAT_RATIO * P2.Pressure * (1 / P2.Density)))) * 0.5 + V_BETA * (SMOOTHING_LENGTH * (-(P1.PositionX - P2.PositionX) * (P2.VelocityX - P1.VelocityX) - (P1.PositionY - P2.PositionY) * (P2.VelocityY - P1.VelocityY)) / (((P1.PositionX - P2.PositionX) * (P1.PositionX - P2.PositionX) + (P1.PositionY - P2.PositionY) * (P1.PositionY - P2.PositionY)) + 20.0)) * (SMOOTHING_LENGTH * (-(P1.PositionX - P2.PositionX) * (P2.VelocityX - P1.VelocityX) - (P1.PositionY - P2.PositionY) * (P2.VelocityY - P1.VelocityY)) / (((P1.PositionX - P2.PositionX) * (P1.PositionX - P2.PositionX) + (P1.PositionY - P2.PositionY) * (P1.PositionY - P2.PositionY)) + 20.0))) * (2.0/( P1.Density + P2.Density ))
+
 							EndIf
+
 							
-							PressureForce :* -P2.Mass*P_KERNEL_FACTOR*R*R/D
+							PressureForce:*- P2.Mass * P_KERNEL_FACTOR * R * R / D
 							
 							DX :* PressureForce
 							DY :* PressureForce
@@ -349,16 +352,16 @@ Type TSPH
 			Local DSQ:Float = P.VelocityX*P.VelocityX + P.VelocityY*P.VelocityY
 			
 			If DSQ > 4.0 Then 'Limit the velocity to restrain the cancer in spreading. Otherwise, the simulation goes *woof* and *boom*
-				Local Factor:Float = Sqr( 4.0/DSQ )
+				Local Factor:Float = Sqr(4.0 / DSQ)
 				
 				P.PositionX = OldX
 				P.PositionY = OldY
 								
-				P.VelocityX :* Factor
-				P.VelocityY :* Factor
+				P.VelocityX:*Factor
+				P.VelocityY:*Factor
 				
-				P.PositionX :+ P.VelocityX*TIMESTEP
-				P.PositionY :+ P.VelocityY*TIMESTEP
+				P.PositionX:+P.VelocityX * TIMESTEP
+				P.PositionY:+P.VelocityY * TIMESTEP
 			EndIf
 			
 			P.ScreenX = P.PositionX*INV_UNIT_SCALE*WORLD_SCALE 'Calculate the position in pixel space for rendering
